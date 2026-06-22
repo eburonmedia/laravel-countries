@@ -7,6 +7,7 @@ calling codes, capitals, coordinates, EU/EEA membership and more).
 ## Table of contents
 
 - [Installation](#installation)
+  - [Installing from a private GitHub repository](#installing-from-a-private-github-repository)
 - [Seeding the data](#seeding-the-data)
 - [How to use](#how-to-use)
   - [1. Quick start](#1-quick-start)
@@ -43,6 +44,54 @@ so you can run:
 ```bash
 php artisan migrate
 ```
+
+### Installing from a private GitHub repository
+
+If the package is hosted in a private GitHub repository (i.e. it is not published on
+Packagist), tell Composer where to find it by adding a `vcs` repository to your
+application's `composer.json`:
+
+```jsonc
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:eburonmedia/laravel-countries.git"
+        }
+    ]
+}
+```
+
+Then require it as usual. Tag a release (e.g. `v1.0.0`) in the repository and target it
+with a version constraint:
+
+```bash
+composer require eburonmedia/laravel-countries:^1.0
+```
+
+Composer needs to authenticate against the private repository. Pick whichever fits your
+environment:
+
+- **SSH (local development):** use the `git@github.com:...` URL shown above and make sure
+  your SSH key has access to the repository.
+- **HTTPS / CI / deploy servers:** create a GitHub
+  [personal access token](https://github.com/settings/tokens) with `repo` scope and store
+  it in Composer's auth config so it is never committed:
+
+  ```bash
+  composer config --global --auth github-oauth.github.com YOUR_GITHUB_TOKEN
+  ```
+
+  On CI you can instead provide the token through the `COMPOSER_AUTH` environment variable:
+
+  ```bash
+  COMPOSER_AUTH='{"github-oauth":{"github.com":"YOUR_GITHUB_TOKEN"}}' composer install
+  ```
+
+> Want to track a branch instead of a tag during development? Require it with the
+> `dev-` prefix, e.g. `composer require eburonmedia/laravel-countries:dev-main`, and set
+> `"minimum-stability": "dev"` (with `"prefer-stable": true`) in your application's
+> `composer.json`.
 
 ## Seeding the data
 
