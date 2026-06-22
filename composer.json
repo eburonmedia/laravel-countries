@@ -1,7 +1,6 @@
 {
     "name": "eburonmedia/laravel-countries",
     "description": "A reusable Laravel package that provides a countries database table, model, migration and seeder.",
-    "version": "1.0.0",
     "keywords": [
         "laravel",
         "countries",
