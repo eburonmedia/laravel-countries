@@ -35,6 +35,28 @@ class TraitAddress extends Model
     }
 }
 
+/**
+ * A throwaway model that stores two country codes on separate columns.
+ */
+class TraitOrder extends Model
+{
+    use HasCountry;
+
+    protected $guarded = [];
+
+    public $timestamps = false;
+
+    public function billingCountry(): ?Country
+    {
+        return $this->countryFromColumn('billing_country_code');
+    }
+
+    public function shippingCountry(): ?Country
+    {
+        return $this->countryFromColumn('shipping_country_code');
+    }
+}
+
 it('resolves the country from the default column via method', function () {
     $user = new TraitUser(['country_code' => 'NL']);
 
@@ -64,4 +86,28 @@ it('returns null when the country code is empty', function () {
 
 it('returns null when the country code does not exist', function () {
     expect((new TraitUser(['country_code' => 'ZZ']))->country())->toBeNull();
+});
+
+it('resolves countries from two separate columns', function () {
+    $order = new TraitOrder([
+        'billing_country_code' => 'NL',
+        'shipping_country_code' => 'be',
+    ]);
+
+    expect($order->billingCountry())
+        ->toBeInstanceOf(Country::class)
+        ->and($order->billingCountry()->name)->toBe('Netherlands')
+        ->and($order->shippingCountry())
+        ->toBeInstanceOf(Country::class)
+        ->and($order->shippingCountry()->name)->toBe('Belgium');
+});
+
+it('returns null per column when a country code is empty', function () {
+    $order = new TraitOrder([
+        'billing_country_code' => 'NL',
+        'shipping_country_code' => null,
+    ]);
+
+    expect($order->billingCountry()?->name)->toBe('Netherlands')
+        ->and($order->shippingCountry())->toBeNull();
 });

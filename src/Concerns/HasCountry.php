@@ -9,7 +9,9 @@ use Eburonmedia\LaravelCountries\Models\Country;
  * Adds a cached "country" accessor to any model that stores a country code.
  *
  * By default the trait reads the ISO 3166-1 alpha-2 code from a "country_code"
- * attribute. Override countryCodeColumn() to point at a different column.
+ * attribute. Override countryCodeColumn() to point at a different column, or use
+ * countryFromColumn() to resolve a country from any column (handy when a model
+ * stores more than one country code, e.g. billing and shipping).
  */
 trait HasCountry
 {
@@ -18,7 +20,18 @@ trait HasCountry
      */
     public function country(): ?Country
     {
-        $code = $this->getAttribute($this->countryCodeColumn());
+        return $this->countryFromColumn($this->countryCodeColumn());
+    }
+
+    /**
+     * Resolve a country from the ISO 3166-1 alpha-2 code held in the given column.
+     *
+     * Useful when a model stores multiple country codes (e.g. a billing and a
+     * shipping country) and you want a dedicated accessor for each.
+     */
+    public function countryFromColumn(string $column): ?Country
+    {
+        $code = $this->getAttribute($column);
 
         if (empty($code)) {
             return null;

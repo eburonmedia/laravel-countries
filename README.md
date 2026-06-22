@@ -248,6 +248,11 @@ $options = Countries::all()
     ->pluck('name', 'iso_3166_2');
 ```
 
+Because `name` is localized to the active locale, the options are both translated
+and sorted alphabetically in that locale. Under the `nl` locale the example above
+yields `NL => "Nederland"`, `DE => "Duitsland"`, `BE => "België"`, and so on. Need
+the English labels instead? Set the locale to `en` (or use `englishName()`).
+
 ```blade
 <select name="country">
     @foreach ($options as $code => $name)
@@ -255,6 +260,32 @@ $options = Countries::all()
     @endforeach
 </select>
 ```
+
+#### With Flux UI (flag images)
+
+Using [Flux UI](https://fluxui.dev/components/select#options-with-images/icons)?
+The `listbox` variant lets you render a flag next to each country name. Pass the
+full `Country` models to the view so you can call `flagUrl()` on each option:
+
+```php
+$countries = Countries::all()->sortBy('name');
+```
+
+```blade
+<flux:select wire:model="country" variant="listbox" searchable placeholder="Choose country...">
+    @foreach ($countries as $country)
+        <flux:select.option value="{{ $country->iso_3166_2 }}">
+            <div class="flex items-center gap-2">
+                <img src="{{ $country->flagUrl() }}" alt="" class="h-4 w-6 rounded-sm object-cover">
+                {{ $country->name }}
+            </div>
+        </flux:select.option>
+    @endforeach
+</flux:select>
+```
+
+Because `name` is localized, the option labels (and the `searchable` filter) follow
+the active locale automatically.
 
 ### 6. Validating a submitted country
 
@@ -372,6 +403,32 @@ class Address extends Model
         return 'iso_3166_2';
     }
 }
+```
+
+Storing **more than one** country code on the same model (e.g. a billing and a
+shipping country)? Use `countryFromColumn()` to add a dedicated accessor for each
+column. Every lookup still comes from the cache, so no extra queries are made:
+
+```php
+class Order extends Model
+{
+    use HasCountry;
+
+    public function billingCountry(): ?Country
+    {
+        return $this->countryFromColumn('billing_country_code');
+    }
+
+    public function shippingCountry(): ?Country
+    {
+        return $this->countryFromColumn('shipping_country_code');
+    }
+}
+```
+
+```php
+$order->billingCountry()?->name;   // "Netherlands"
+$order->shippingCountry()?->name;  // "Belgium"
 ```
 
 When the code is empty or unknown, the accessor returns `null`.
